@@ -1,0 +1,109 @@
+package controller
+
+import (
+	"errors"
+	"net/http"
+
+	"rialfu/wallet/modules/user/dto"
+	"rialfu/wallet/modules/user/service"
+	"rialfu/wallet/modules/user/validation"
+	"rialfu/wallet/pkg/constants"
+	"rialfu/wallet/pkg/utils"
+
+	"github.com/gin-gonic/gin"
+	"github.com/samber/do"
+	"gorm.io/gorm"
+)
+
+type (
+	UserController interface {
+		Me(ctx *gin.Context)
+		GetAllUser(ctx *gin.Context)
+		Update(ctx *gin.Context)
+	}
+
+	userController struct {
+		userService    service.UserService
+		userValidation *validation.UserValidation
+		db             *gorm.DB
+	}
+)
+
+func NewUserController(injector *do.Injector, us service.UserService) UserController {
+	db := do.MustInvokeNamed[*gorm.DB](injector, constants.DB)
+	userValidation := validation.NewUserValidation()
+	return &userController{
+		userService:    us,
+		userValidation: userValidation,
+		db:             db,
+	}
+}
+
+func (c *userController) GetAllUser(ctx *gin.Context) {
+	data, err := c.userService.GetAllUser(ctx)
+	if err != nil {
+		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_GET_USER, err.Error(), nil)
+		ctx.JSON(http.StatusBadRequest, res)
+		return
+	}
+	res := utils.BuildResponseSuccess(constants.MESSAGE_SUCCESS_GET_LIST_DATA, data)
+	ctx.JSON(http.StatusOK, res)
+}
+
+func (c *userController) Me(ctx *gin.Context) {
+	userId := ctx.MustGet("user_id").(string)
+
+	result, err := c.userService.GetUserById(ctx.Request.Context(), userId)
+	if err != nil {
+		var res utils.Response
+		var status int
+		if errors.Is(err, constants.ErrDataNotFound) {
+			res = utils.BuildResponseFailed(constants.MESSAGE_FAILED_GET_DATA, constants.MESSAGE_FAILED_DATA_NOT_FOUND, nil)
+			status = http.StatusNotFound
+		} else {
+			res = utils.BuildResponseFailed(dto.MESSAGE_FAILED_GET_USER, err.Error(), nil)
+			status = http.StatusInternalServerError
+		}
+
+		ctx.JSON(status, res)
+		return
+	}
+
+	res := utils.BuildResponseSuccess(constants.MESSAGE_SUCCESS_GET_DATA, result)
+	ctx.JSON(http.StatusOK, res)
+}
+
+func (c *userController) Update(ctx *gin.Context) {
+	var req dto.UserUpdateRequest
+	if err := ctx.ShouldBind(&req); err != nil {
+		res := utils.BuildResponseFailed(constants.MESSAGE_FAILED_GET_DATA_FROM_BODY, err.Error(), nil)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
+		return
+	}
+
+	if err := c.userValidation.ValidateUserUpdateRequest(req); err != nil {
+		res := utils.BuildResponseFailed("Validation failed", err.Error(), nil)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
+		return
+	}
+
+	userId := ctx.MustGet("user_id").(string)
+	result, err := c.userService.Update(ctx.Request.Context(), req, userId)
+	if err != nil {
+		var res utils.Response
+		var status int
+		if errors.Is(err, constants.ErrDataNotFound) {
+			res = utils.BuildResponseFailed(constants.MESSAGE_FAILED_GET_DATA, constants.MESSAGE_FAILED_DATA_NOT_FOUND, nil)
+			status = http.StatusNotFound
+		} else {
+			res = utils.BuildResponseFailed(dto.MESSAGE_FAILED_GET_USER, err.Error(), nil)
+			status = http.StatusInternalServerError
+		}
+
+		ctx.JSON(status, res)
+		return
+	}
+
+	res := utils.BuildResponseSuccess(constants.MESSAGE_SUCCESS_UPDATE_DATA, result)
+	ctx.JSON(http.StatusOK, res)
+}
