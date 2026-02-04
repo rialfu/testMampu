@@ -7,6 +7,7 @@ import (
 	"rialfu/wallet/modules/auth/service"
 	userDto "rialfu/wallet/modules/user/dto"
 	"rialfu/wallet/pkg/constants"
+	_ "rialfu/wallet/pkg/example"
 	"rialfu/wallet/pkg/helpers"
 	"rialfu/wallet/pkg/utils"
 
@@ -37,6 +38,13 @@ func NewAuthController(injector *do.Injector, as service.AuthService) AuthContro
 	}
 }
 
+// Register godoc
+// @Summary Untuk Register
+// @Accept json
+// @Produce json
+// @Param request body userDto.UserCreateRequest true "Create user payload"
+// @Success 200 {object} example.ResponseRegister
+// @Router /api/auth/register [post]
 func (c *authController) Register(ctx *gin.Context) {
 	var req userDto.UserCreateRequest
 	if err := ctx.ShouldBind(&req); err != nil {
@@ -44,7 +52,6 @@ func (c *authController) Register(ctx *gin.Context) {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
 		return
 	}
-
 	// Validate request
 
 	validate := validator.New()
@@ -76,6 +83,13 @@ func (c *authController) Register(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, res)
 }
 
+// Login godoc
+// @Summary Untuk Login
+// @Accept json
+// @Produce json
+// @Param request body userDto.UserLoginRequest true "Login payload"
+// @Success 200 {object} example.ResponseLogin
+// @Router /api/auth/login [post]
 func (c *authController) Login(ctx *gin.Context) {
 	var req userDto.UserLoginRequest
 	if err := ctx.ShouldBind(&req); err != nil {

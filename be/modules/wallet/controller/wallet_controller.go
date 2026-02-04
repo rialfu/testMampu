@@ -9,6 +9,8 @@ import (
 	"rialfu/wallet/pkg/helpers"
 	"rialfu/wallet/pkg/utils"
 
+	_ "rialfu/wallet/pkg/example"
+
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"github.com/samber/do"
@@ -38,6 +40,13 @@ func NewUserController(injector *do.Injector, ws service.WalletService) WalletCo
 	}
 }
 
+// Inquiry Balance godoc
+// @Summary Untuk Mengecek sisa saldo
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Success 200 {object} example.ResponseCheckBalance
+// @Router /api/wallet/balance [get]
 func (c *walletController) CheckBalancee(ctx *gin.Context) {
 	val, exist := ctx.Get("user_id")
 	var userId string
@@ -67,6 +76,15 @@ func (c *walletController) CheckBalancee(ctx *gin.Context) {
 	res = utils.BuildResponseSuccess(constants.MESSAGE_SUCCESS_GET_DATA, data)
 	ctx.JSON(http.StatusOK, res)
 }
+
+// Withdraw Wallet godoc
+// @Summary Untuk menarik saldo
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Param request body dto.WithdrawRequest true "Withdraw payload"
+// @Success 200 {object} example.ResponseWithdraw
+// @Router /api/wallet/withdraw [post]
 func (c *walletController) WithdrawProcess(ctx *gin.Context) {
 	val, exist := ctx.Get("user_id")
 	var userId string
@@ -119,6 +137,15 @@ func (c *walletController) WithdrawProcess(ctx *gin.Context) {
 	res = utils.BuildResponseSuccess(dto.MESSSAGE_SUCCESS_WITHDRAW, data)
 	ctx.JSON(http.StatusOK, res)
 }
+
+// Store Wallet godoc
+// @Summary Untuk menyetor saldo
+// @description API for terima request dari sistem lain untuk store wallet
+// @Accept json
+// @Produce json
+// @Param request body dto.StoreRequest true "Store payload"
+// @Success 200 {object} example.ResponseStoreWallet
+// @Router /api/wallet/deposit [post]
 func (c *walletController) StoreProcess(ctx *gin.Context) {
 	var res utils.Response
 	var req dto.StoreRequest

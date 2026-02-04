@@ -9,9 +9,13 @@ import (
 	"rialfu/wallet/modules/wallet"
 	"rialfu/wallet/providers"
 
+	_ "rialfu/wallet/docs"
+
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"github.com/samber/do"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 func args(injector *do.Injector) bool {
@@ -44,6 +48,9 @@ func run(server *gin.Engine) {
 	}
 }
 
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
 func main() {
 	err := godotenv.Load()
 	if err != nil {
@@ -61,7 +68,7 @@ func main() {
 
 	server := gin.Default()
 	server.Use(middlewares.CORSMiddleware())
-
+	server.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	// Register module routes
 	user.RegisterRoutes(server, injector)
 	auth.RegisterRoutes(server, injector)

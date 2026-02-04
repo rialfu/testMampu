@@ -1,0 +1,267 @@
+definitions:
+  dto.BalanceResponse:
+    properties:
+      balance:
+        type: number
+      last_update:
+        type: string
+      wallet_id:
+        type: string
+    type: object
+  dto.StoreRequest:
+    properties:
+      amount:
+        minimum: 1
+        type: number
+      paid_at:
+        type: string
+      payment_type:
+        type: string
+      signature_key:
+        type: string
+      wallet_id:
+        type: string
+    required:
+    - amount
+    - paid_at
+    - payment_type
+    - signature_key
+    - wallet_id
+    type: object
+  dto.StoreResponse:
+    properties:
+      amount:
+        type: number
+      fee:
+        type: number
+      reference_no:
+        type: string
+    type: object
+  dto.TokenResponse:
+    properties:
+      access_token:
+        type: string
+      email:
+        type: string
+      name:
+        type: string
+      telp:
+        type: string
+    type: object
+  dto.UserCreateRequest:
+    properties:
+      email:
+        type: string
+      name:
+        maxLength: 100
+        minLength: 2
+        type: string
+      password:
+        minLength: 8
+        type: string
+      telp:
+        maxLength: 14
+        minLength: 8
+        type: string
+    required:
+    - email
+    - name
+    - password
+    - telp
+    type: object
+  dto.UserLoginRequest:
+    properties:
+      email_phone:
+        type: string
+      password:
+        type: string
+    required:
+    - email_phone
+    - password
+    type: object
+  dto.UserResponse:
+    properties:
+      email:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      telp:
+        type: string
+    type: object
+  dto.WithdrawRequest:
+    properties:
+      balance:
+        minimum: 1
+        type: number
+      target_account:
+        maxLength: 50
+        type: string
+      target_bank:
+        type: integer
+    required:
+    - balance
+    - target_account
+    - target_bank
+    type: object
+  dto.WithdrawResponse:
+    properties:
+      amount:
+        type: number
+      fee:
+        type: number
+      reference_no:
+        type: string
+      target_account:
+        type: string
+      target_bank:
+        type: string
+    type: object
+  example.ResponseCheckBalance:
+    properties:
+      data:
+        $ref: '#/definitions/dto.BalanceResponse'
+      message:
+        type: string
+      status:
+        type: boolean
+    type: object
+  example.ResponseLogin:
+    properties:
+      data:
+        $ref: '#/definitions/dto.TokenResponse'
+      message:
+        type: string
+      status:
+        type: boolean
+    type: object
+  example.ResponseRegister:
+    properties:
+      data:
+        $ref: '#/definitions/dto.UserResponse'
+      message:
+        type: string
+      status:
+        type: boolean
+    type: object
+  example.ResponseStoreWallet:
+    properties:
+      data:
+        $ref: '#/definitions/dto.StoreResponse'
+      message:
+        type: string
+      status:
+        type: boolean
+    type: object
+  example.ResponseWithdraw:
+    properties:
+      data:
+        $ref: '#/definitions/dto.WithdrawResponse'
+      message:
+        type: string
+      status:
+        type: boolean
+    type: object
+info:
+  contact: {}
+paths:
+  /api/auth/login:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Login payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UserLoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/example.ResponseLogin'
+      summary: Untuk Login
+  /api/auth/register:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Create user payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UserCreateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/example.ResponseRegister'
+      summary: Untuk Register
+  /api/wallet/balance:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/example.ResponseCheckBalance'
+      security:
+      - BearerAuth: []
+      summary: Untuk Mengecek sisa saldo
+  /api/wallet/deposit:
+    post:
+      consumes:
+      - application/json
+      description: API for terima request dari sistem lain untuk store wallet
+      parameters:
+      - description: Store payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.StoreRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/example.ResponseStoreWallet'
+      summary: Untuk menyetor saldo
+  /api/wallet/withdraw:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Withdraw payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.WithdrawRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/example.ResponseWithdraw'
+      security:
+      - BearerAuth: []
+      summary: Untuk menarik saldo
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
